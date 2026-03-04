@@ -1,4 +1,5 @@
 import ID
+from data_helpers import generate_input_file
 # from eviction_policies import FIFO, LRU, OPTFF
 
 # Main program
