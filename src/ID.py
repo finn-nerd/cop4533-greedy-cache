@@ -8,6 +8,9 @@ class ID:
         self.lastAccessed = math.inf
         self.nextRequest = 0
 
+    def __eq__(self, other):
+        return isinstance(other, ID) and self.personalID == other.personalID
+
     # Set when the ID entered the cache (FIFO)
     def setEnteredCache(self, enteredCache):
         self.enteredCache = enteredCache

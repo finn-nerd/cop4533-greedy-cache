@@ -1,13 +1,15 @@
 import ID
+# from eviction_policies import FIFO, LRU, OPTFF
 
+# Main program
 def main():
     # Get the input file path from the user
-    file_path = input("Enter the input file path.")
+    file_path = input("Enter the input file path: ")
 
     # Try to open the file at the file path
     try:
         with open(file_path, 'r') as f:
-            # Splits line into peices using whitespace and converts the strings into ints
+            # Splits line into pieces using whitespace and converts the strings into ints
             k, m = map(int, f.readline().split())
             ids = list(map(int, f.readline().split()))
     except FileNotFoundError:
@@ -27,17 +29,70 @@ def main():
         print("Error: The sequence of integer IDs is not the same size as 'm'.")
         return
     
-    # Initialize our cache to size k
-    cache = [None] * k
+    # Initialize our caches
+    cache1 = []
+    cache2 = []
+    cache3 = []
 
-    i = 0
+    # Get the hits/misses of utilizing each eviction policy
+    hits_FIFO, misses_FIFO = addToCache(k, m, ids, cache1, 1)
+    hits_LRU, misses_LRU = addToCache(k, m, ids, cache2, 2)
+    hits_OPTFF, misses_OPTFF = addToCache(k, m, ids, cache3, 3)
+
+    # Write the hits/misses into an output file
+    o_file_path = input("Enter the output file path: ")
+
+    # Write to output file
+    with open(o_file_path, 'w') as f:
+        f.write(f"FIFO  : {misses_FIFO}\n")
+        f.write(f"LRU   : {misses_LRU}\n")
+        f.write(f"OPTFF : {misses_OPTFF}\n")
+
+# Adds ids to cache depending on eviction policy
+def addToCache(k, m, ids, cache, policy):
+    # Record number of hits/misses for the policy
+    hits = 0
+    misses = 0
+
+    i = 0 # index
+    time = 0 # time
 
     # Add each id to our cache
     while i < m:
-        newID = ID(ids[i])
+        newID = ID.ID(ids[i])
 
+        # See if id is in cache already
+        if newID in cache:
+            hits += 1
 
-    file.close()
+            # find the id in cache already and update it's access time
+            cached = cache[cache.index(newID)]
+            cached.setLastAccessed(time)
+        else:
+            misses += 1
+
+            newID.setEnteredCache(time)
+            newID.setLastAccessed(time)
+
+            # If cache isn't full, add id to cache
+            if len(cache) < k:
+                cache.append(newID)
+            else:
+                '''
+                # Determine which eviction policy to use
+                if policy == 1:
+                    FIFO(cache, newID)
+                elif policy == 2:
+                    LRU(cache, newID)
+                elif policy == 3:
+                    OPTFF(cache, newID)
+                '''
+
+        time += 1
+        i += 1
+
+    return hits, misses
+                
 
 if __name__ == "__main__":
     main()
