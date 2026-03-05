@@ -1,6 +1,6 @@
-import ID
+import ID, math
 from data_helpers import generate_input_file
-# from eviction_policies import FIFO, LRU, OPTFF
+from eviction_policies import FIFO, LRU, OPTFF
 
 # Main program
 def main():
@@ -41,13 +41,22 @@ def main():
     hits_OPTFF, misses_OPTFF = addToCache(k, m, ids, cache3, 3)
 
     # Write the hits/misses into an output file
-    o_file_path = input("Enter the output file path: ")
+    o_file_path = input("Enter the output file path (optional): ")
+
+    # Print result
+    print(f"FIFO  : {misses_FIFO}")
+    print(f"LRU   : {misses_LRU}")
+    print(f"OPTFF : {misses_OPTFF}")
 
     # Write to output file
-    with open(o_file_path, 'w') as f:
-        f.write(f"FIFO  : {misses_FIFO}\n")
-        f.write(f"LRU   : {misses_LRU}\n")
-        f.write(f"OPTFF : {misses_OPTFF}\n")
+    try:
+        with open(o_file_path, 'w') as f:
+            f.write(f"FIFO  : {misses_FIFO}\n")
+            f.write(f"LRU   : {misses_LRU}\n")
+            f.write(f"OPTFF : {misses_OPTFF}\n")
+        print("Wrote output to file.")
+    except FileNotFoundError:
+        print("Output file not found, exiting.")
 
 # Adds ids to cache depending on eviction policy
 def addToCache(k, m, ids, cache, policy):
@@ -66,9 +75,8 @@ def addToCache(k, m, ids, cache, policy):
         if newID in cache:
             hits += 1
 
-            # find the id in cache already and update it's access time
-            cached = cache[cache.index(newID)]
-            cached.setLastAccessed(time)
+            # find the id in cache already and update its access time
+            cache[cache.index(newID)].setLastAccessed(time)
         else:
             misses += 1
 
@@ -79,7 +87,6 @@ def addToCache(k, m, ids, cache, policy):
             if len(cache) < k:
                 cache.append(newID)
             else:
-                '''
                 # Determine which eviction policy to use
                 if policy == 1:
                     FIFO(cache, newID)
@@ -87,7 +94,16 @@ def addToCache(k, m, ids, cache, policy):
                     LRU(cache, newID)
                 elif policy == 3:
                     OPTFF(cache, newID)
-                '''
+
+        # Update ID's next access
+        found = False
+        for j in range(i + 1, m):
+            if ids[j] == newID.personalID:
+                cache[cache.index(newID)].setNextRequest(j)
+                found = True
+                break
+        if not found:
+            cache[cache.index(newID)].setNextRequest(math.inf)
 
         time += 1
         i += 1
